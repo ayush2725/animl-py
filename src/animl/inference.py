@@ -49,18 +49,17 @@ def predict_species(detections, model, classes, device='cpu', out_file=None,
                     for ix, batch in enumerate(dataset):
                         data = batch[0]
                         # name = batch[1]
-                        data.to(device)
+                        data = data.to(device)
                         output = model(data)
+                        pred_label = torch.argmax(output, dim=1).cpu().detach().numpy()
+                        predictions.extend(pred_label)
 
-                        labels = torch.argmax(output, dim=1).cpu().detach().numpy()
-                        pred = classes['species'].values[labels]
-                        predictions.extend(pred)
-
-                        probs = torch.max(torch.nn.functional.softmax(output, dim=1), 1)
+                        probs = torch.max(torch.nn.functional.softmax(output, dim=1), 1)[0]
+                        probs = probs.cpu().detach().numpy()
                         probabilities.extend(probs)
                         progressBar.update(1)
 
-                detections['prediction'] = predictions
+                detections['prediction'] = [classes['species'].values[x] for x in predictions]
                 detections['confidence'] = probabilities
                 progressBar.close()   
 

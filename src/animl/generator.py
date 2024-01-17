@@ -146,7 +146,7 @@ class TrainGenerator(Dataset):
 
     def __getitem__(self, idx):
         image_name = self.x.loc[idx, self.file_col]
-        label = self.categories[ self.x.loc[idx, self.label_col]]
+        label = self.categories[self.x.loc[idx, self.label_col]]
 
         try:
             img = Image.open(image_name).convert('RGB')
@@ -231,7 +231,7 @@ class TFGenerator(Sequence):
         return np.asarray(imgarray)
 
 
-def train_dataloader(manifest, classes, batch_size=1, workers=1, file_col="FilePath", crop=False):
+def train_dataloader(manifest, classes, batch_size=1, workers=1, file_col="FilePath", crop=True, shuffle=True):
     '''
         Loads a dataset for training and wraps it in a
         PyTorch DataLoader object.
@@ -258,7 +258,7 @@ def create_dataloader(manifest, batch_size=1, workers=1, framework="torch", file
     dataLoader = DataLoader(
             dataset=dataset_instance,
             batch_size=batch_size,
-            shuffle=True,
+            shuffle=False,
             num_workers=workers
         )
     return dataLoader
