@@ -10,6 +10,21 @@ import numpy as np
 from . import classifiers
 
 
+def load_model(architecture, num_classes):
+    '''
+        Creates a model instance. 
+    '''
+    
+    if (architecture=="CTL"):
+        model_instance = classifiers.CTLClassifier(num_classes)
+    elif (architecture=="efficientnet_v2_m"):
+        model_instance = classifiers.EfficientNet(num_classes,tune=False)        
+    else:
+        raise AssertionError('Please provide the correct model')
+
+    return model_instance
+
+
 def main():
     '''
     Command line function
@@ -27,9 +42,9 @@ def main():
     
     #collect the torch model file path 
     parser.add_argument('--torchModel', help='Path to torch model (.pt file)')
+    
     #collect the classification labels file path - to build torch model
     parser.add_argument('--classFile', help='Path to classification categories (.csv file)')
-    
     #for architecture
     parser.add_argument('--architecture', help='Model architecture (default = CTL)')
     #for onnx model file name
@@ -41,23 +56,33 @@ def main():
       
     args = parser.parse_args() #add the parser arguments 
     
-    
+    modelLoaded = False
+                        
     #load paths directly from the command line
     if (args.config == None):
         
-        device = 'cuda:0'
+        device = 'cpu'
         
         batch_size = 1
         image_size = [299,299]
         
         #take torch model path from command line input
-        torchModel = args.torchModel
-        classFile = args.classFile
-                        
+        torchModelPath = args.torchModel
+                                
         if args.architecture == None: 
             architecture="CTL" #default
         else:
             architecture = args.architecture
+                        
+        if args.classFile == None: 
+            modelTorch = load_model(architecture, num_classe=53)
+            pathModelAll = torch.load(args.torchModel, map_location=torch.device(device))
+            modelTorch.load_state_dict(pathModelAll["model"])
+            modelTorch.eval()
+            modelLoaded = True
+        else: 
+            classFile = args.classFile
+                        
                            
     #if yaml file given, take varaibles from that       
     else 
@@ -75,14 +100,16 @@ def main():
         image_size = cfg["image_size"]
         
         #take torch model path from yaml config file
-        torchModel = cfg['active_model']
+        torchModelPath = cfg['active_model']
         classFile = cfg['class_file']
         architecture = cfg['architecture']
 
                         
     #load the torch model
-    modelTorch, classTorch = classifiers.load_model(torchModel, classFile, device=device, 
+    if not modelLoaded: 
+        modelTorch, classTorch = classifiers.load_model(torchModelPath, classFile, device=device, 
                                                     architecture=architecture, overwrite=False)
+        modelLoaded = True
     
     #define the location of the output onnx model
     if args.onnxFileName == None:
