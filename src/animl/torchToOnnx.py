@@ -31,17 +31,27 @@ def main():
 
     Example usage:
     > python torchToOnnx.py --torchModel "/mnt/machinelearning/Models/Andes/Experiment5/30.pt" 
-                            --classFile "/mnt/machinelearning/Training Data - Andes/andes_classes.csv" 
+                            --numb_classes 53
+                            --onnxFileName "onnxModel.onnx"
+                    or
+    
+      python torchToOnnx.py --torchModel "/mnt/machinelearning/Models/Andes/Experiment5/30.pt" 
+                            --classFile "/mnt/machinelearning/Training Data - Andes/andes_classes.csv"
+                            --architecture "CTL"
+                            --onnxFileName "onnxModel.onnx"
                             
                     or 
                    
       python torchToOnnx.py --config "/mnt/machinelearning/Models/Andes/Experiment5/exp5.yaml"
+                            --onnxFileName "onnxModel.onnx"
     '''
            
     parser = argparse.ArgumentParser(description='convert torch model to onnx')
     
     #collect the torch model file path 
     parser.add_argument('--torchModel', help='Path to torch model (.pt file)')
+    #ask for the size of the classificaiton labels
+    parser.add_argument('--numb_classes', help='Count of how many label catergories are in dataset (int)')
     
     #collect the classification labels file path - to build torch model
     parser.add_argument('--classFile', help='Path to classification categories (.csv file)')
@@ -75,7 +85,7 @@ def main():
             architecture = args.architecture
                         
         if args.classFile == None: 
-            modelTorch = load_model(architecture, num_classe=53)
+            modelTorch = load_model(architecture, num_classes=args.numb_classes)
             pathModelAll = torch.load(args.torchModel, map_location=torch.device(device))
             modelTorch.load_state_dict(pathModelAll["model"])
             modelTorch.eval()
