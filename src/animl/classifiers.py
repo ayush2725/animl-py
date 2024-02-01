@@ -6,6 +6,8 @@
 import os
 import glob
 import pandas as pd
+import onnx
+import onnxruntime
 import torch
 import torch.nn as nn
 from time import time
@@ -13,6 +15,13 @@ from humanfriendly import format_timespan
 from torchvision.models import resnet
 from torchvision.models import efficientnet
 from tensorflow import keras
+
+
+def to_numpy(tensor):
+    '''
+    Helper function for ONNX models
+    '''
+    return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
 
 def save_model(out_dir, epoch, model, stats):
@@ -92,6 +101,7 @@ def load_model(model_path, class_file, device="cpu", architecture="CTL", overwri
         # TensorFlow
         if model_path.endswith('.h5'):
             model = keras.models.load_model(model_path)
+            model.framework = 'tensorflow'
         # PyTorch dict
         elif model_path.endswith('.pt'):
             model = EfficientNet(len(classes), tune=False)
@@ -99,11 +109,19 @@ def load_model(model_path, class_file, device="cpu", architecture="CTL", overwri
             model.load_state_dict(checkpoint['model'])
             model.to(device)
             model.eval()
+            model.framework = 'torch'
         # PyTorch full model
         elif model_path.endswith('.pth'):
             model = torch.load(model_path)
             model.to(device)
             model.eval()
+            model.framework = 'torch'
+        # ONNX
+        elif model_path.endswith('.onnx'):
+            model = onnx.load(model_path)
+            onnx.checker.check_model(model)
+            model = onnxruntime.InferenceSession(model_path, providers=['CUDAExecutionProvider', "CPUExecutionProvider"])
+            model.framework = 'onnx'
         else:
             raise ValueError('Unrecognized model format: {}'.format(model_path))
         elapsed = time() - start_time

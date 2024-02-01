@@ -247,18 +247,17 @@ def train_dataloader(manifest, classes, batch_size=1, workers=1, file_col="FileP
     return dataLoader
 
 
-def create_dataloader(manifest, batch_size=1, workers=1, framework="torch", file_col="file"):
+def create_dataloader(manifest, batch_size=1, workers=1, file_col="file"):
     '''
         Loads a dataset and wraps it in a
         PyTorch DataLoader object.
     '''
-    #  file_col='file', resize=299, buffer=0
     dataset_instance = CropGenerator(manifest, file_col=file_col)
 
     dataLoader = DataLoader(
-            dataset=dataset_instance,
-            batch_size=batch_size,
-            shuffle=False,
-            num_workers=workers
-        )
+        dataset=dataset_instance,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=workers
+    )
     return dataLoader
