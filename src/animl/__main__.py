@@ -22,7 +22,7 @@ import wget
 import torch
 import pandas as pd
 from . import (file_management, video_processing, megadetector,
-               detect, split, classifiers, inference, symlink)
+               detect, split, classifiers, inference, shrink, symlink)
 
 
 def main(image_dir, detector_file, classifier_file, class_list, sort=True):
@@ -86,6 +86,7 @@ def main(image_dir, detector_file, classifier_file, class_list, sort=True):
     # merge animal and empty, create symlinks
     print("Concatenating animal and empty dataframes...")
     manifest = pd.concat([animals, empty]).reset_index(drop=True)
+    manifest = shrink.best_guess(manifest)
     if sort:
         manifest = symlink.symlink_species(manifest, working_dir.linkdir)
 

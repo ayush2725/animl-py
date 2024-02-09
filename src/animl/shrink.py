@@ -13,9 +13,7 @@ from numpy import vstack
 from . import file_management
 
 
-def shrink(manifest, file, file_col="FilePath", sort='conf'):
-
-    sequence = manifest[manifest[file_col] == file]
+def shrink(sequence, file_col="FilePath", sort='conf'):
 
     guesses = sequence.groupby(['prediction'], as_index=False).agg({'confidence': ['max', 'count']})
 
@@ -26,7 +24,7 @@ def shrink(manifest, file, file_col="FilePath", sort='conf'):
 
     if (guess == "empty") and (len(guesses) > 1):
         print('skip empty')
-        guess = guess.loc[1, "prediction"].item()
+        guess = guesses.loc[1, "prediction"].item()
         conf = guesses.loc[1, "confidence"]['max'].item()
 
     sequence['prediction'] = guess
@@ -40,11 +38,8 @@ def best_guess(manifest, file_col="FilePath", sort="conf", out_file=None, parall
     if file_management.check_file(out_file):
         return file_management.load_data(out_file)
 
-    if  not type(manifest, "data.frame"):
-        raise TypeError("'manifest' must be DataFrame")
-
     file_names = manifest[file_col].unique()
-    new_df = pd.DataFrame(columns=manifest.names())
+    new_df = pd.DataFrame(columns=manifest.columns.values.tolist())
 
     if parallel:
         pool = mp.Pool(workers)
@@ -56,7 +51,7 @@ def best_guess(manifest, file_col="FilePath", sort="conf", out_file=None, parall
 
     else:
         for i in tqdm(file_names):
-
+            sequence = manifest[manifest[file_col] == i]
             sequence = shrink(sequence)
             sequence = sequence.drop_duplicates(file_col)
             new_df = pd.concat([new_df,sequence])
