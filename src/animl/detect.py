@@ -182,9 +182,8 @@ def parse_MD(results, manifest=None, out_file=None, buffer=0.02, threshold=0):
     if len(results) == 0:
         raise AssertionError("'results' contains no detections")
 
-    df = pd.DataFrame(columns=('file', 'max_detection_conf',
-                               'category', 'conf', 'bbox1',
-                               'bbox2', 'bbox3', 'bbox4'))
+    df = pd.DataFrame(columns=('file', 'category', 'conf',
+                               'bbox1', 'bbox2', 'bbox3', 'bbox4'))
     for frame in tqdm(results):
         try:
             detections = frame['detections']
@@ -193,7 +192,6 @@ def parse_MD(results, manifest=None, out_file=None, buffer=0.02, threshold=0):
             continue
         if len(detections) == 0:
             data = {'file': [frame['file']],
-                    'max_detection_conf': [frame['max_detection_conf']],
                     'category': [0], 'conf': [None], 'bbox1': [None],
                     'bbox2': [None], 'bbox3': [None], 'bbox4': [None]}
             df = pd.concat([df, pd.DataFrame(data)]).reset_index(drop=True)
@@ -203,8 +201,8 @@ def parse_MD(results, manifest=None, out_file=None, buffer=0.02, threshold=0):
                 bbox = detection['bbox']
                 if (detection['conf'] > threshold):
                     data = {'file': [frame['file']],
-                            'max_detection_conf': [frame['max_detection_conf']],
-                            'category': [detection['category']], 'conf': [detection['conf']],
+                            'category': [detection['category']],
+                            'conf': [detection['conf']],
                             'bbox1': [bbox[0]], 'bbox2': [bbox[1]],
                             'bbox3': [bbox[2]], 'bbox4': [bbox[3]]}
                     df = pd.concat([df, pd.DataFrame(data)]).reset_index(drop=True)
