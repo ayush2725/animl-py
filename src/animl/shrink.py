@@ -12,6 +12,8 @@ from numpy import vstack
 
 from . import file_management
 
+pd.set_option('mode.chained_assignment', None)
+
 
 def shrink(sequence, file_col="FilePath", sort='conf'):
 
@@ -23,10 +25,10 @@ def shrink(sequence, file_col="FilePath", sort='conf'):
     conf = guesses.loc[0, "confidence"]['max'].item()
 
     if (guess == "empty") and (len(guesses) > 1):
-        print('skip empty')
         guess = guesses.loc[1, "prediction"].item()
         conf = guesses.loc[1, "confidence"]['max'].item()
 
+    sequence = sequence.drop_duplicates(file_col)
     sequence['prediction'] = guess
     sequence['confidence'] = conf
 
@@ -44,19 +46,18 @@ def best_guess(manifest, file_col="FilePath", sort="conf", out_file=None, parall
     if parallel:
         pool = mp.Pool(workers)
 
-        stack = vstack([pool.apply(shrink, args=(manifest, file), kwds= {file_col: file_col})
-                                for file in tqdm(file_names)])
+        new_df = vstack([pool.apply(shrink, args=(manifest, file), kwds={file_col: file_col, sort: sort})
+                         for file in tqdm(file_names)])
 
         pool.close()
 
     else:
         for i in tqdm(file_names):
-            sequence = manifest[manifest[file_col] == i]
+            sequence = manifest[manifest[file_col] == i].copy()
             sequence = shrink(sequence)
-            sequence = sequence.drop_duplicates(file_col)
-            new_df = pd.concat([new_df,sequence])
-    
-    if out_file is not None: 
+            new_df = pd.concat([new_df, sequence])
+
+    if out_file is not None:
         file_management.save_data(new_df, out_file)
-    
+
     return new_df

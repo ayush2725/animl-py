@@ -38,12 +38,12 @@ def draw_bounding_boxes(row, box_number, image_output_path=None, prediction=Fals
         label = row['prediction']
         text_size, _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_DUPLEX, 1, 1)
         text_size_width, text_size_height = text_size
-        
+
         box_right = (right if (right - left) < (text_size_width * 3)
-                 else left + (text_size_width * 3))
+                     else left + (text_size_width * 3))
         cv2.rectangle(img, (left, top),
-                  (box_right, top - (text_size_height * 2)),
-                  (90, 255, 0), -1)
+                      (box_right, top - (text_size_height * 2)),
+                      (90, 255, 0), -1)
 
         cv2.putText(img, label, (left, top - 12), 0, 1e-3 * height,
                     (0, 0, 0), thick // 3)
