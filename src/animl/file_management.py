@@ -12,7 +12,8 @@ import pandas as pd
 from random import randrange
 
 
-def build_file_manifest(image_dir, exif=True, offset=0, out_file=None, unique=True):
+def build_file_manifest(image_dir, exif=True, offset=0, out_file=None,
+                        recursive=True, unique=True):
     """
     Recursively Find Image/Video Files and Gather exif Data
 
@@ -30,7 +31,7 @@ def build_file_manifest(image_dir, exif=True, offset=0, out_file=None, unique=Tr
     if not os.path.isdir(image_dir):
         raise FileNotFoundError("The given directory does not exist.")
 
-    files = glob(os.path.join(image_dir, '**', '*.*'), recursive=True)
+    files = glob(os.path.join(image_dir, '**', '*.*'), recursive=recursive)
 
     files = pd.DataFrame(files, columns=["FilePath"])
     files["FileName"] = files["FilePath"].apply(
