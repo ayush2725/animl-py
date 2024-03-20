@@ -57,7 +57,7 @@ def main(image_dir, detector_file, classifier_file, class_list, sort=True):
     all_frames = video_processing.images_from_videos(files,
                                                      out_dir=working_dir.vidfdir,
                                                      out_file=working_dir.imageframes,
-                                                     parallel=True, frames=1)
+                                                     parallel=True, frames=3)
 
     # Run all images and video frames through MegaDetector
     print("Running images and video frames through MegaDetector...")
